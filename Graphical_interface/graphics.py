@@ -27,7 +27,7 @@ class MyMainForm(QMainWindow, Ui_Interface):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
         self.file_directory = os.path.abspath(os.path.dirname(os.getcwd()))
-        self.output_size = 640
+        self.output_size = 360
         self.device = 'cpu'
         self.stopEvent = threading.Event()
         self.webcam = True
@@ -38,6 +38,7 @@ class MyMainForm(QMainWindow, Ui_Interface):
     def control(self):
         self.img_up.clicked.connect(self.img_upload)
         self.img_dec.clicked.connect(self.img_detect)
+        self.vid_up.clicked.connect(self.vid_upload)
         self.cam_on.clicked.connect(self.camera_on)
 
     def model_load(self,
@@ -84,15 +85,16 @@ class MyMainForm(QMainWindow, Ui_Interface):
         self.pro_img.setPixmap(QtGui.QPixmap("images/temp/image0.jpg"))
         self.pro_img.setScaledContents(True)
 
+
     def vid_upload(self):
         get_filename_path, ok = QFileDialog.getOpenFileName(self, 'Choose file', '', '*.mp4 *.avi')
         if ok:
-            self.webcam_detection_btn.setEnabled(False)
-            self.mp4_detection_btn.setEnabled(False)
+            # self.webcam_detection_btn.setEnabled(False)
+            # self.mp4_detection_btn.setEnabled(False)
             # self.vid_stop_btn.setEnabled(True)
             self.vid_source = get_filename_path
             self.webcam = False
-            th = threading.Thread(target=self.detect_vid)
+            th = threading.Thread(target=self.vid_detect(vid_source = 'video'))
             th.start()
 
     def camera_on(self):
@@ -103,10 +105,14 @@ class MyMainForm(QMainWindow, Ui_Interface):
         self.webcam = True
         # 把按钮给他重置了
         # print("GOGOGO")
-        th = threading.Thread(target=self.vid_detect)
+        th = threading.Thread(target=self.vid_detect(vid_source = 'camera'))
         th.start()
 
-    def vid_detect(self):
+    def camara_off(self):
+        b = 0
+
+
+    def vid_detect(self, vid_source = ''):
         # pass
         model = self.model2
         output_size = self.output_size
@@ -219,7 +225,10 @@ class MyMainForm(QMainWindow, Ui_Interface):
                 resize_scale = output_size / frame.shape[0]
                 frame_resized = cv2.resize(frame, (0, 0), fx=resize_scale, fy=resize_scale)
                 cv2.imwrite("images/temp/single_result_vid.jpg", frame_resized)
-                self.cam.setPixmap(QtGui.QPixmap("images/temp/single_result_vid.jpg"))
+                if vid_source == 'video':
+                    self.vid.setPixmap(QtGui.QPixmap("images/temp/single_result_vid.jpg"))
+                elif vid_source == 'camera':
+                    self.cam.setPixmap(QtGui.QPixmap("images/temp/single_result_vid.jpg"))
                 # self.vid_img
                 # if view_img:
                 # cv2.imshow(str(p), im0)
