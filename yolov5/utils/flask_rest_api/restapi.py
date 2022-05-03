@@ -1,8 +1,6 @@
-# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
 Run a Flask REST API exposing a YOLOv5s model
 """
-
 import argparse
 import io
 
@@ -21,16 +19,12 @@ def predict():
         return
 
     if request.files.get("image"):
-        # Method 1
-        # with request.files["image"] as f:
-        #     im = Image.open(io.BytesIO(f.read()))
+        image_file = request.files["image"]
+        image_bytes = image_file.read()
 
-        # Method 2
-        im_file = request.files["image"]
-        im_bytes = im_file.read()
-        im = Image.open(io.BytesIO(im_bytes))
+        img = Image.open(io.BytesIO(image_bytes))
 
-        results = model(im, size=640)  # reduce size=320 for faster inference
+        results = model(img, size=640)  # reduce size=320 for faster inference
         return results.pandas().xyxy[0].to_json(orient="records")
 
 

@@ -90,7 +90,7 @@ class Ui_Interface(object):
 
     def retranslateUi(self, Interface):
         _translate = QtCore.QCoreApplication.translate
-        Interface.setWindowTitle(_translate("Interface", "Form"))
+        Interface.setWindowTitle(_translate("Interface", "口罩检测系统"))
         self.img_up.setText(_translate("Interface", "上传图片"))
         self.img_dec.setText(_translate("Interface", "开始检测"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.image), _translate("Interface", "图片检测"))

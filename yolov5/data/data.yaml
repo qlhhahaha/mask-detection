@@ -1,0 +1,7 @@
+path: ../datasets/mask
+train: train/images
+val: valid/images
+test:
+
+nc: 3
+names: ['mask_weared_incorrect', 'with_mask', 'without_mask']
