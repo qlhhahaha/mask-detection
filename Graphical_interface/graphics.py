@@ -10,6 +10,12 @@ import shutil
 import cv2
 import threading
 import sys
+from pathlib import Path
+import torch.backends.cudnn as cudnn
+# sys.path.append('D://program//project//python//Mask-detection//yolov5//models')
+# sys.path.append('D://program//project//python//Mask-detection//yolov5//utils')
+
+from models.common import DetectMultiBackend
 from utils.datasets import IMG_FORMATS, VID_FORMATS, LoadImages, LoadStreams
 from utils.general import (LOGGER, check_file, check_img_size, check_imshow, check_requirements, colorstr,
                            increment_path, non_max_suppression, print_args, scale_coords, strip_optimizer, xyxy2xywh)
@@ -22,15 +28,37 @@ class MyMainForm(QMainWindow, Ui_Interface):
         self.setupUi(self)
         self.file_directory = os.path.abspath(os.path.dirname(os.getcwd()))
         self.output_size = 640
-        self.model_load()
+        self.device = 'cpu'
+        self.stopEvent = threading.Event()
+        self.webcam = True
+        self.stopEvent.clear()
+        self.model_load(device=self.device)
         self.control()
+
     def control(self):
         self.img_up.clicked.connect(self.img_upload)
         self.img_dec.clicked.connect(self.img_detect)
-    def model_load(self):
+        self.cam_on.clicked.connect(self.camera_on)
+
+    def model_load(self,
+                   device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+                   half=False,  # use FP16 half-precision inference
+                   dnn=False,  # use OpenCV DNN for ONNX inference
+                   ):
         pathtoyolov5 = self.file_directory+'/yolov5'
         pathtobest = self.file_directory+'/yolov5/best.pt'
-        self.model = torch.hub.load(pathtoyolov5, 'custom', path=pathtobest, source='local')
+        self.model1 = torch.hub.load(pathtoyolov5, 'custom', path=pathtobest, source='local')
+        device = select_device(device)
+        half &= device.type != 'cpu'  # half precision only supported on CUDA
+        device = select_device(device)
+        model2 = DetectMultiBackend(pathtobest, device=device, dnn=dnn)
+        stride, names, pt, jit, onnx = model2.stride, model2.names, model2.pt, model2.jit, model2.onnx
+        # Half
+        half &= pt and device.type != 'cpu'  # half precision only supported by PyTorch on CUDA
+        if pt:
+            model2.model.half() if half else model2.model.float()
+        self.model2 =model2
+
     def img_upload(self):
         get_filename_path, ok = QFileDialog.getOpenFileName(self,
                                                             "选取单个文件",
@@ -49,7 +77,7 @@ class MyMainForm(QMainWindow, Ui_Interface):
             self.ini_img.setScaledContents(True)
             b = 0
     def img_detect(self):
-        model = self.model
+        model = self.model1
         img = cv2.imread('images/temp/processed.jpg')[..., ::-1]
         results = model(img, size=640)
         results.save(save_dir='images/temp')
@@ -67,9 +95,20 @@ class MyMainForm(QMainWindow, Ui_Interface):
             th = threading.Thread(target=self.detect_vid)
             th.start()
 
-    def detect_vid(self):
+    def camera_on(self):
+        self.cam_off.setEnabled(False)
+        # self.mp4_detection_btn.setEnabled(False)
+        # self.vid_stop_btn.setEnabled(True)
+        self.vid_source = '0'
+        self.webcam = True
+        # 把按钮给他重置了
+        # print("GOGOGO")
+        th = threading.Thread(target=self.vid_detect)
+        th.start()
+
+    def vid_detect(self):
         # pass
-        model = self.model
+        model = self.model2
         output_size = self.output_size
         # source = self.img2predict  # file/dir/URL/glob, 0 for webcam
         imgsz = [640, 640]  # inference size (pixels)
@@ -179,8 +218,8 @@ class MyMainForm(QMainWindow, Ui_Interface):
                 frame = im0
                 resize_scale = output_size / frame.shape[0]
                 frame_resized = cv2.resize(frame, (0, 0), fx=resize_scale, fy=resize_scale)
-                cv2.imwrite("images/tmp/single_result_vid.jpg", frame_resized)
-                self.vid_img.setPixmap(QPixmap("images/tmp/single_result_vid.jpg"))
+                cv2.imwrite("images/temp/single_result_vid.jpg", frame_resized)
+                self.cam.setPixmap(QtGui.QPixmap("images/temp/single_result_vid.jpg"))
                 # self.vid_img
                 # if view_img:
                 # cv2.imshow(str(p), im0)
