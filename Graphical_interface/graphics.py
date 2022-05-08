@@ -1,6 +1,7 @@
 import sys
 #PyQt5中使用的基本控件都在PyQt5.QtWidgets模块中
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox,QInputDialog,QFileDialog
 #导入designer工具生成的login模块
 from interface import Ui_Interface
@@ -53,14 +54,16 @@ class MyMainForm(QMainWindow, Ui_Interface):
         if par == 1:
             self.ini_img.setPixmap(QtGui.QPixmap("images/cover/image0.jpg"))
             self.pro_img.setPixmap(QtGui.QPixmap("images/cover/image1.jpg"))
-            self.ini_img.setScaledContents(True)
-            self.pro_img.setScaledContents(True)
+            self.ini_img.setAlignment(Qt.AlignCenter)
+            self.pro_img.setAlignment(Qt.AlignCenter)
+            # self.ini_img.setScaledContents(True)
+            # self.pro_img.setScaledContents(True)
         elif par == 2:
             self.vid.setPixmap(QtGui.QPixmap("images/cover/video.png"))
-            self.vid.setScaledContents(True)
+            self.vid.setAlignment(Qt.AlignCenter)
         elif par == 3:
             self.cam.setPixmap(QtGui.QPixmap("images/cover/camera.png"))
-            self.cam.setScaledContents(True)
+            self.cam.setAlignment(Qt.AlignCenter)
 
 
     def model_load(self,
@@ -98,7 +101,8 @@ class MyMainForm(QMainWindow, Ui_Interface):
             processed_img = cv2.resize(init_img, (0, 0), fx=resize_scale, fy=resize_scale)
             cv2.imwrite("images/temp/processed.jpg", processed_img)
             self.ini_img.setPixmap(QtGui.QPixmap("images/temp/processed.jpg"))
-            self.ini_img.setScaledContents(True)
+            # self.ini_img.setScaledContents(True)
+            self.ini_img.setAlignment(Qt.AlignCenter)
 
     def img_detect(self):
         model = self.model1
@@ -106,11 +110,15 @@ class MyMainForm(QMainWindow, Ui_Interface):
         results = model(img, size=640)
         results.save(save_dir='images/temp')
         self.pro_img.setPixmap(QtGui.QPixmap("images/temp/image0.jpg"))
-        self.pro_img.setScaledContents(True)
+        # self.pro_img.setScaledContents(True)
+        self.pro_img.setAlignment(Qt.AlignCenter)
 
 
     def vid_upload(self):
-        get_filename_path, ok = QFileDialog.getOpenFileName(self, 'Choose file', '', '*.mp4 *.avi')
+        get_filename_path, ok = QFileDialog.getOpenFileName(self,
+                                                            "选取单个文件",
+                                                            "D:/",
+                                                            "Image Files (*.mp4 *.avi)")
         if ok:
             # self.webcam_detection_btn.setEnabled(False)
             # self.mp4_detection_btn.setEnabled(False)
@@ -254,8 +262,10 @@ class MyMainForm(QMainWindow, Ui_Interface):
                 cv2.imwrite("images/temp/single_result_vid.jpg", frame_resized)
                 if vid_source == 'video':
                     self.vid.setPixmap(QtGui.QPixmap("images/temp/single_result_vid.jpg"))
+                    self.vid.setAlignment(Qt.AlignCenter)
                 elif vid_source == 'camera':
                     self.cam.setPixmap(QtGui.QPixmap("images/temp/single_result_vid.jpg"))
+                    self.cam.setAlignment(Qt.AlignCenter)
                 # self.vid_img
                 # if view_img:
                 # cv2.imshow(str(p), im0)

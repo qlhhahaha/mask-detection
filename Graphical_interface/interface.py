@@ -48,7 +48,7 @@ class Ui_Interface(object):
         self.video = QtWidgets.QWidget()
         self.video.setObjectName("video")
         self.vid = QtWidgets.QLabel(self.video)
-        self.vid.setGeometry(QtCore.QRect(290, 50, 480, 480))
+        self.vid.setGeometry(QtCore.QRect(150, 50, 800, 480))
         self.vid.setText("")
         self.vid.setObjectName("vid")
         self.vid_up = QtWidgets.QPushButton(self.video)
@@ -67,7 +67,7 @@ class Ui_Interface(object):
         self.camara = QtWidgets.QWidget()
         self.camara.setObjectName("camara")
         self.cam = QtWidgets.QLabel(self.camara)
-        self.cam.setGeometry(QtCore.QRect(290, 50, 480, 480))
+        self.cam.setGeometry(QtCore.QRect(150, 50, 800, 480))
         self.cam.setText("")
         self.cam.setObjectName("cam")
         self.cam_on = QtWidgets.QPushButton(self.camara)
@@ -90,7 +90,7 @@ class Ui_Interface(object):
 
     def retranslateUi(self, Interface):
         _translate = QtCore.QCoreApplication.translate
-        Interface.setWindowTitle(_translate("Interface", "口罩检测系统"))
+        Interface.setWindowTitle(_translate("Interface", "Form"))
         self.img_up.setText(_translate("Interface", "上传图片"))
         self.img_dec.setText(_translate("Interface", "开始检测"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.image), _translate("Interface", "图片检测"))

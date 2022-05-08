@@ -29,7 +29,7 @@
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="iconSize">
     <size>
@@ -163,7 +163,7 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="vid_dec">
+    <widget class="QPushButton" name="vid_off">
      <property name="geometry">
       <rect>
        <x>580</x>
