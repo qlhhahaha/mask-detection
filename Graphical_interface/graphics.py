@@ -26,6 +26,10 @@ class MyMainForm(QMainWindow, Ui_Interface):
     def __init__(self, parent=None):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
+        #初始化界面中的图片
+        self.ui_img(par=1)
+        self.ui_img(par=2)
+        self.ui_img(par=3)
         self.file_directory = os.path.abspath(os.path.dirname(os.getcwd()))
         self.output_size = 360
         self.device = 'cpu'
@@ -34,12 +38,30 @@ class MyMainForm(QMainWindow, Ui_Interface):
         self.stopEvent.clear()
         self.model_load(device=self.device)
         self.control()
+        b=0
 
     def control(self):
         self.img_up.clicked.connect(self.img_upload)
         self.img_dec.clicked.connect(self.img_detect)
         self.vid_up.clicked.connect(self.vid_upload)
+        self.vid_off.clicked.connect(self.video_off)
         self.cam_on.clicked.connect(self.camera_on)
+        self.cam_off.clicked.connect(self.camara_off)
+
+
+    def ui_img(self,par=1):
+        if par == 1:
+            self.ini_img.setPixmap(QtGui.QPixmap("images/cover/image0.jpg"))
+            self.pro_img.setPixmap(QtGui.QPixmap("images/cover/image1.jpg"))
+            self.ini_img.setScaledContents(True)
+            self.pro_img.setScaledContents(True)
+        elif par == 2:
+            self.vid.setPixmap(QtGui.QPixmap("images/cover/video.png"))
+            self.vid.setScaledContents(True)
+        elif par == 3:
+            self.cam.setPixmap(QtGui.QPixmap("images/cover/camera.png"))
+            self.cam.setScaledContents(True)
+
 
     def model_load(self,
                    device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
@@ -61,6 +83,7 @@ class MyMainForm(QMainWindow, Ui_Interface):
         self.model2 =model2
 
     def img_upload(self):
+        self.ui_img(par=1)
         get_filename_path, ok = QFileDialog.getOpenFileName(self,
                                                             "选取单个文件",
                                                             "D:/",
@@ -69,14 +92,14 @@ class MyMainForm(QMainWindow, Ui_Interface):
             suffix = get_filename_path.split(".")[-1]
             save_path = os.path.join("images/temp", "init." + suffix)
             shutil.copy(get_filename_path, save_path)
-            # 应该调整一下图片的大小，然后统一防在一起
+            # 应该调整一下图片的大小，然后统一放在一起
             init_img = cv2.imread(save_path)
             resize_scale = self.output_size / init_img.shape[0]
             processed_img = cv2.resize(init_img, (0, 0), fx=resize_scale, fy=resize_scale)
             cv2.imwrite("images/temp/processed.jpg", processed_img)
             self.ini_img.setPixmap(QtGui.QPixmap("images/temp/processed.jpg"))
             self.ini_img.setScaledContents(True)
-            b = 0
+
     def img_detect(self):
         model = self.model1
         img = cv2.imread('images/temp/processed.jpg')[..., ::-1]
@@ -97,19 +120,23 @@ class MyMainForm(QMainWindow, Ui_Interface):
             th = threading.Thread(target=self.vid_detect(vid_source = 'video'))
             th.start()
 
-    def camera_on(self):
-        self.cam_off.setEnabled(False)
-        # self.mp4_detection_btn.setEnabled(False)
-        # self.vid_stop_btn.setEnabled(True)
+    def video_off(self):
+        self.stopEvent.set()
+        self.ui_img(par=2)
         self.vid_source = '0'
         self.webcam = True
-        # 把按钮给他重置了
-        # print("GOGOGO")
+
+    def camera_on(self):
+        self.vid_source = '0'
+        self.webcam = True
         th = threading.Thread(target=self.vid_detect(vid_source = 'camera'))
         th.start()
 
     def camara_off(self):
-        b = 0
+        self.stopEvent.set()
+        self.ui_img(par=3)
+        self.vid_source = '0'
+        self.webcam = True
 
 
     def vid_detect(self, vid_source = ''):
@@ -211,7 +238,7 @@ class MyMainForm(QMainWindow, Ui_Interface):
 
                         if save_img or save_crop or view_img:  # Add bbox to image
                             c = int(cls)  # integer class
-                            label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                            label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} ')
                             annotator.box_label(xyxy, label, color=colors(c, True))
                             # if save_crop:
                             #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg',
@@ -236,13 +263,27 @@ class MyMainForm(QMainWindow, Ui_Interface):
                 # cv2.waitKey(1)  # 1 millisecond
             if cv2.waitKey(25) & self.stopEvent.is_set() == True:
                 self.stopEvent.clear()
-                self.webcam_detection_btn.setEnabled(True)
-                self.mp4_detection_btn.setEnabled(True)
-                self.reset_vid()
+                if vid_source == 'video':
+                    self.ui_img(par=2)
+                elif vid_source == 'camera':
+                    self.ui_img(par=3)
                 break
-        # self.reset_vid()
 
+        '''
+        ### 界面关闭事件 ### 
+        '''
 
+        def closeEvent(self, event):
+            reply = QMessageBox.question(self,
+                                         'quit',
+                                         "Are you sure?",
+                                         QMessageBox.Yes | QMessageBox.No,
+                                         QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.close()
+                event.accept()
+            else:
+                event.ignore()
 
 
 if __name__ == "__main__":
